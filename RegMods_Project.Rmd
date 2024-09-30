@@ -1,0 +1,74 @@
+---
+title: "Regression Models Course Project"
+author: "Matti Salimi"
+date: "Sunday, April 26, 2015"
+output: html_document
+---
+
+## Abstract
+The `mtcars` dataset included in R is investigated in this project. The report will use the data to answer the following questions:
+
+"Is an automatic or manual transmission better for MPG"
+
+"Quantifying how different is the MPG between automatic and manual transmissions?"
+
+The investigation shows that cars with a manual transmission have slightly better MPG than automatic, but the difference is statistically insignificant.
+
+## Analysis
+mtcars is a data frame with 32 observations on 11 variables. The data is showed using scatter plot matrices, as Figure 1 in appendix. Here the bivariate relationship among all the variables can be seen. For the analysis, variables `mtcars$vs` and `mtcars$am` should be factor category variables.
+
+```{r}
+mtcars$vs <- as.factor(mtcars$vs)
+mtcars$am <- as.factor(mtcars$am)
+```
+
+Focus is on the relationship between variables mpg (Miles/(US) gallon) and am (Transmission). A boxplot shows that there's a good separation of groups based on gas mileage.
+
+```{r}
+boxplot(mpg ~ am, data = mtcars, xlab = "Transmission (0 = automatic, 1 = manual)")
+```
+
+But there are 10 predictor variables in the data set. Some may play a bigger role in determining mpg. An analysis of variance model is performed, as:
+
+```{r}
+analysis <- aov(mpg ~ ., data = mtcars)
+summary(analysis)
+```
+
+Obviously, variables with p-value below 0.05 are more important. cyl, disp, wt, drat, am are chosen as predictor variables for the first model:
+
+```{r}
+lm <- lm(mpg ~ cyl + disp + wt + drat + am, data = mtcars)
+summary(lm)
+```
+
+The drat coefficient has a p-value of 0.95226. Refine the model as:
+
+```{r}
+lm <- lm(mpg ~ cyl + disp + wt + am, data = mtcars)
+summary(lm)
+```
+
+After removing the variable disp, the model is:
+
+```{r}
+lm <- lm(mpg ~ cyl + wt + am, data = mtcars)
+summary(lm)
+```
+
+The adjusted r-squared is 0.83 and will serve as the final model. Clearly, with cylinders and weight as confounding variables, the ceofficient of the am variable is small but has a large p-value. The hypothesis that the coefficient of am is 0 can't be rejected.
+
+The object returned from lm() is plotted to diagnose the model. In the upper left graph, no pattern can be found. The normal Q-Q plot (upper right) indicates the model met the normality assumption. Scale-Location graph (bottom left) shows that the constant variance assumption is satisfied.
+
+```{r}
+par(mfrow = c(2, 2))
+plot(lm)
+```
+
+It's now conclusive that weight and number of cylinders play an important role to determination of mpg.
+
+## Appendix
+Figure 1
+```{r}
+pairs(mtcars)
+```
